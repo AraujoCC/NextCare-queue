@@ -1,0 +1,33 @@
+spring:
+  application:
+    name: queue-system
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/laborwaze}
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:dev2026}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+  websocket:
+    enabled: true
+
+app:
+  jwt:
+    secret: ${JWT_SECRET:my-secret-key-that-should-be-at-least-32-chars-long-for-HS256}
+    expiration: ${JWT_EXPIRATION:86400000}
+
+server:
+  port: ${SERVER_PORT:8080}
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html

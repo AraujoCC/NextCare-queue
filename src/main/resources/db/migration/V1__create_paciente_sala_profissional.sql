@@ -1,0 +1,34 @@
+CREATE TABLE pacientes (
+    id VARCHAR(36) PRIMARY KEY,
+    nome VARCHAR NOT NULL,
+    cpf VARCHAR UNIQUE NOT NULL,
+    email VARCHAR,
+    telefone VARCHAR,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE salas (
+    id VARCHAR(36) PRIMARY KEY,
+    nome VARCHAR UNIQUE NOT NULL,
+    numero VARCHAR,
+    descricao VARCHAR,
+    ativo BOOLEAN DEFAULT true,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE usuarios (
+    id VARCHAR(36) PRIMARY KEY,
+    login VARCHAR UNIQUE NOT NULL,
+    senha VARCHAR NOT NULL,
+    email VARCHAR UNIQUE NOT NULL,
+    papel VARCHAR NOT NULL DEFAULT 'PACIENTE',
+    ativo BOOLEAN DEFAULT true,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_pacientes_cpf ON pacientes(cpf);
+CREATE INDEX idx_usuarios_login ON usuarios(login);
+CREATE INDEX idx_usuarios_email ON usuarios(email);

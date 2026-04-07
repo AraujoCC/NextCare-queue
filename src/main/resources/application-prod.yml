@@ -1,0 +1,19 @@
+spring:
+  jpa:
+    show-sql: false
+  flyway:
+    clean-disabled: true
+
+logging:
+  level:
+    com.laborwaze: INFO
+    org.hibernate: WARN
+
+server:
+  error:
+    include-stacktrace: never
+
+app:
+  jwt:
+    secret: ${JWT_SECRET}
+    expiration: 3600000
