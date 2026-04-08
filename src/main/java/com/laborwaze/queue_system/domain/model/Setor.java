@@ -1,24 +1,25 @@
 package com.laborwaze.queue_system.domain.model;
 
-import jakarta.persistence.*;
-import lombok.*;
+import com.laborwaze.queue_system.domain.exception.BusinessRuleException;
+import java.time.LocalDateTime;
 
-@Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-@Entity
-@Table(name = "setores")
-@EqualsAndHashCode(callSuper = true)
 public class Setor extends BaseEntity {
 
-    @Column(nullable = false, unique = true)
     private String nome;
-
-    @Column
     private String descricao;
+    private Boolean ativo;
 
-    @Column(name = "ativo")
-    @Builder.Default
-    private Boolean ativo = true;
+    public Setor(String id, LocalDateTime createdAt, LocalDateTime updatedAt, String nome, String descricao, Boolean ativo) {
+        super(id, createdAt, updatedAt);
+        if (nome == null || nome.isBlank()) {
+            throw new BusinessRuleException("Nome do setor não pode ser vazio");
+        }
+        this.nome = nome;
+        this.descricao = descricao;
+        this.ativo = ativo != null ? ativo : true;
+    }
+
+    public String getNome() { return nome; }
+    public String getDescricao() { return descricao; }
+    public Boolean getAtivo() { return ativo; }
 }

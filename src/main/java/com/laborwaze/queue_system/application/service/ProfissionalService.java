@@ -21,20 +21,13 @@ public class ProfissionalService {
     @Transactional
     public Usuario criar(String nome, String login, String email, String senha, PapelUsuario papel) {
         if (usuarioRepository.existsByLogin(login)) {
-            throw new IllegalArgumentException("Login já existe");
+            throw new com.laborwaze.queue_system.domain.exception.BusinessRuleException("Login já existe");
         }
         if (usuarioRepository.existsByEmail(email)) {
-            throw new IllegalArgumentException("Email já existe");
+            throw new com.laborwaze.queue_system.domain.exception.BusinessRuleException("Email já existe");
         }
 
-        Usuario profissional = Usuario.builder()
-                .nome(nome)
-                .login(login)
-                .email(email)
-                .senha(passwordEncoder.encode(senha))
-                .papel(papel)
-                .ativo(true)
-                .build();
+        Usuario profissional = new Usuario(null, null, null, nome, login, passwordEncoder.encode(senha), email, papel, null, true);
         return usuarioRepository.save(profissional);
     }
 
@@ -51,8 +44,8 @@ public class ProfissionalService {
     @Transactional
     public void desativar(String id) {
         Usuario profissional = usuarioRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Profissional não encontrado"));
-        profissional.setAtivo(false);
+                .orElseThrow(() -> new com.laborwaze.queue_system.domain.exception.ResourceNotFoundException("Profissional não encontrado"));
+        profissional.desativar();
         usuarioRepository.save(profissional);
     }
 }

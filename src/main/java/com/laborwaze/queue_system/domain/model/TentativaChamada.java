@@ -1,34 +1,35 @@
 package com.laborwaze.queue_system.domain.model;
 
-import jakarta.persistence.*;
-import lombok.*;
-
+import com.laborwaze.queue_system.domain.exception.BusinessRuleException;
 import java.time.LocalDateTime;
 
-@Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-@Entity
-@Table(name = "tentativas_chamada")
-@EqualsAndHashCode(callSuper = true)
 public class TentativaChamada extends BaseEntity {
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "chamada_id", nullable = false)
     private Chamada chamada;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "sala_id")
     private Sala sala;
-
-    @Column(nullable = false)
     private LocalDateTime dataTentativa;
-
-    @Column(nullable = false)
-    @Builder.Default
-    private Boolean sucesso = false;
-
-    @Column(name = "observacao")
+    private Boolean sucesso;
     private String observacao;
+
+    public TentativaChamada(String id, LocalDateTime createdAt, LocalDateTime updatedAt, Chamada chamada, Sala sala, LocalDateTime dataTentativa, Boolean sucesso, String observacao) {
+        super(id, createdAt, updatedAt);
+        if (chamada == null) throw new BusinessRuleException("Chamada é obrigatória na tentativa");
+        if (dataTentativa == null) throw new BusinessRuleException("Data da tentativa é obrigatória");
+        
+        this.chamada = chamada;
+        this.sala = sala;
+        this.dataTentativa = dataTentativa;
+        this.sucesso = sucesso != null ? sucesso : false;
+        this.observacao = observacao;
+    }
+
+    public Chamada getChamada() { return chamada; }
+    public Sala getSala() { return sala; }
+    public LocalDateTime getDataTentativa() { return dataTentativa; }
+    public Boolean getSucesso() { return sucesso; }
+    public String getObservacao() { return observacao; }
+    
+    public void marcarSucesso() {
+        this.sucesso = true;
+    }
 }

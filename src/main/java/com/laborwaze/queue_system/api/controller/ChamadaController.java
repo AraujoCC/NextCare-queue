@@ -9,6 +9,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -22,6 +23,7 @@ public class ChamadaController {
     private final ChamadaService chamadaService;
 
     @PostMapping
+    @PreAuthorize("hasAnyRole('ATENDENTE', 'ADMIN', 'SUPERVISOR')")
     @Operation(summary = "Criar chamada", description = "Registra uma nova chamada na fila")
     public ResponseEntity<ChamadaResponse> criarChamada(@Valid @RequestBody ChamadaRequest request) {
         ChamadaResponse response = ChamadaResponse.fromEntity(chamadaService.criarChamada(request));
@@ -47,6 +49,7 @@ public class ChamadaController {
     }
 
     @PutMapping("/{id}/chamar")
+    @PreAuthorize("hasAnyRole('ATENDENTE', 'ADMIN', 'SUPERVISOR')")
     @Operation(summary = "Chamar para atendimento", description = "Inicia o atendimento de uma chamada")
     public ResponseEntity<ChamadaResponse> chamar(
             @PathVariable String id,
@@ -59,6 +62,7 @@ public class ChamadaController {
     }
 
     @PutMapping("/{id}/finalizar")
+    @PreAuthorize("hasAnyRole('ATENDENTE', 'ADMIN', 'SUPERVISOR')")
     @Operation(summary = "Finalizar chamada", description = "Finaliza o atendimento de uma chamada")
     public ResponseEntity<ChamadaResponse> finalizar(@PathVariable String id) {
         ChamadaResponse response = ChamadaResponse.fromEntity(chamadaService.finalizarChamada(id));
@@ -66,6 +70,7 @@ public class ChamadaController {
     }
 
     @PutMapping("/{id}/cancelar")
+    @PreAuthorize("hasAnyRole('ATENDENTE', 'ADMIN', 'SUPERVISOR')")
     @Operation(summary = "Cancelar chamada", description = "Cancela uma chamada da fila")
     public ResponseEntity<ChamadaResponse> cancelar(@PathVariable String id) {
         ChamadaResponse response = ChamadaResponse.fromEntity(chamadaService.cancelarChamada(id));

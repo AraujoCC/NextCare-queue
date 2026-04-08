@@ -17,12 +17,7 @@ public class SalaService {
 
     @Transactional
     public Sala criar(String nome, String numero, String descricao) {
-        Sala sala = Sala.builder()
-                .nome(nome)
-                .numero(numero)
-                .descricao(descricao)
-                .ativo(true)
-                .build();
+        Sala sala = new Sala(null, null, null, nome, numero, descricao, true);
         return salaRepository.save(sala);
     }
 
@@ -39,8 +34,8 @@ public class SalaService {
     @Transactional
     public void desativar(String id) {
         Sala sala = salaRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Sala não encontrada"));
-        sala.setAtivo(false);
+                .orElseThrow(() -> new com.laborwaze.queue_system.domain.exception.ResourceNotFoundException("Sala não encontrada"));
+        sala.desativar();
         salaRepository.save(sala);
     }
 }

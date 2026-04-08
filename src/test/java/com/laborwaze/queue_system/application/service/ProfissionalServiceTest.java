@@ -36,14 +36,7 @@ class ProfissionalServiceTest {
 
     @BeforeEach
     void setUp() {
-        profissional = Usuario.builder()
-                .login("maria.silva")
-                .email("maria@email.com")
-                .senha("encoded-hash")
-                .papel(PapelUsuario.ATENDENTE)
-                .ativo(true)
-                .build();
-        profissional.setId("prof-001");
+        profissional = new Usuario("prof-001", null, null, "Maria Silva", "maria.silva", "encoded-hash", "maria@email.com", PapelUsuario.ATENDENTE, null, true);
     }
 
     @Test
@@ -53,8 +46,7 @@ class ProfissionalServiceTest {
         when(passwordEncoder.encode("senha123")).thenReturn("encoded-hash");
         when(usuarioRepository.save(any(Usuario.class))).thenAnswer(invocation -> {
             Usuario saved = invocation.getArgument(0);
-            saved.setId("prof-001");
-            return saved;
+            return new Usuario("prof-001", null, null, saved.getNome(), saved.getLogin(), saved.getSenha(), saved.getEmail(), saved.getPapel(), saved.getSetor(), saved.getAtivo());
         });
 
             Usuario result = profissionalService.criar("Maria Silva", "maria.silva",
@@ -77,8 +69,8 @@ class ProfissionalServiceTest {
 
         assertThatThrownBy(() -> profissionalService.criar("Maria Silva", "maria.silva",
                 "maria@email.com", "senha123", PapelUsuario.ATENDENTE))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("Login j\u00e1 existe");
+                .isInstanceOf(com.laborwaze.queue_system.domain.exception.BusinessRuleException.class)
+                .hasMessageContaining("Login");
 
         verify(passwordEncoder, never()).encode(any());
         verify(usuarioRepository, never()).save(any());

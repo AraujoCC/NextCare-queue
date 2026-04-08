@@ -1,7 +1,7 @@
 ---
 name: developer
 description: "Use este agente quando for necessário escrever código, corrigir bugs ou implementar uma solução já definida.\\n\\nAcione após o Tech Lead definir o plano ou quando o usuário pedir diretamente implementação.\\n\\nTambém use quando houver necessidade de refatorar código existente ou melhorar a qualidade da implementação.\\n\\nPrefira usar este agente de forma proativa sempre que identificar que sua especialidade pode agregar valor."
-model: sonnet
+model: deepseek/deepseek-chat
 memory: project
 ---
 

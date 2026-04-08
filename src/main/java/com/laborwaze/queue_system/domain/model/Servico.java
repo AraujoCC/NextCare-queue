@@ -1,34 +1,35 @@
 package com.laborwaze.queue_system.domain.model;
 
-import jakarta.persistence.*;
-import lombok.*;
+import com.laborwaze.queue_system.domain.exception.BusinessRuleException;
+import java.time.LocalDateTime;
 
-@Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-@Entity
-@Table(name = "servicos")
-@EqualsAndHashCode(callSuper = true)
 public class Servico extends BaseEntity {
 
-    @Column(nullable = false)
     private String nome;
-
-    @Column(nullable = false, unique = true)
     private String codigo;
-
-    @Column
     private String descricao;
-
-    @Column(name = "tempo_medio_atendimento")
     private Integer tempoMedioAtendimento;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "setor_id", nullable = false)
     private Setor setor;
+    private Boolean ativo;
 
-    @Column(name = "ativo")
-    @Builder.Default
-    private Boolean ativo = true;
+    public Servico(String id, LocalDateTime createdAt, LocalDateTime updatedAt, String nome, String codigo, String descricao, Integer tempoMedioAtendimento, Setor setor, Boolean ativo) {
+        super(id, createdAt, updatedAt);
+        if (nome == null || nome.isBlank()) throw new BusinessRuleException("Nome do serviço é obrigatório");
+        if (codigo == null || codigo.isBlank()) throw new BusinessRuleException("Código do serviço é obrigatório");
+        if (setor == null) throw new BusinessRuleException("Setor é obrigatório para o serviço");
+
+        this.nome = nome;
+        this.codigo = codigo;
+        this.descricao = descricao;
+        this.tempoMedioAtendimento = tempoMedioAtendimento;
+        this.setor = setor;
+        this.ativo = ativo != null ? ativo : true;
+    }
+
+    public String getNome() { return nome; }
+    public String getCodigo() { return codigo; }
+    public String getDescricao() { return descricao; }
+    public Integer getTempoMedioAtendimento() { return tempoMedioAtendimento; }
+    public Setor getSetor() { return setor; }
+    public Boolean getAtivo() { return ativo; }
 }

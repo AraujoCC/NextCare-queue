@@ -36,18 +36,12 @@ class ChamadaRepositoryTest extends BaseIntegrationTest {
 
     @BeforeEach
     void setUp() {
-        setor = setorRepository.save(Setor.builder().nome("Clínica").descricao("Setor clínico").ativo(true).build());
-        servico = servicoRepository.save(Servico.builder()
-                .codigo("C").nome("Consulta").descricao("Consulta geral").setor(setor).ativo(true).build());
-        paciente = pacienteRepository.save(Paciente.builder()
-                .nome("João").cpf("111.222.333-44").email("joao@email.com").build());
-        atendente = usuarioRepository.save(Usuario.builder()
-                .nome("Maria").login("maria").email("maria@email.com").senha("123")
-                .papel(PapelUsuario.ATENDENTE).build());
+        setor = setorRepository.save(new Setor(null, null, null, "Clínica", "Setor clínico", true));
+        servico = servicoRepository.save(new Servico(null, null, null, "Consulta", "C", "Consulta geral", null, setor, true));
+        paciente = pacienteRepository.save(new Paciente(null, null, null, "João", "111.222.333-44", "joao@email.com", null));
+        atendente = usuarioRepository.save(new Usuario(null, null, null, "Maria", "maria", "123", "maria@email.com", PapelUsuario.ATENDENTE, null, true));
 
-        chamada = chamadaRepository.save(Chamada.builder()
-                .senha("C001").paciente(paciente).servico(servico)
-                .status(StatusChamada.AGUARDANDO).prioridade(NivelPrioridade.NORMAL).build());
+        chamada = chamadaRepository.save(new Chamada(null, null, null, "C001", paciente, servico, null, StatusChamada.AGUARDANDO, NivelPrioridade.NORMAL, java.time.LocalDateTime.now(), null, null));
     }
 
     @Test
@@ -70,9 +64,7 @@ class ChamadaRepositoryTest extends BaseIntegrationTest {
     @Test
     @DisplayName("Deve buscar chamadas por atendente e status")
     void findByAtendenteIdAndStatus() {
-        Chamada emAtendimento = Chamada.builder()
-                .senha("C002").paciente(paciente).servico(servico).atendente(atendente)
-                .status(StatusChamada.EM_ATENDIMENTO).prioridade(NivelPrioridade.NORMAL).build();
+        Chamada emAtendimento = new Chamada(null, null, null, "C002", paciente, servico, atendente, StatusChamada.EM_ATENDIMENTO, NivelPrioridade.NORMAL, java.time.LocalDateTime.now(), null, null);
         chamadaRepository.save(emAtendimento);
 
         List<Chamada> result = chamadaRepository.findByAtendenteIdAndStatus(atendente.getId(), StatusChamada.EM_ATENDIMENTO);
@@ -133,8 +125,8 @@ class ChamadaRepositoryTest extends BaseIntegrationTest {
     @Test
     @DisplayName("Deve atualizar status de chamada")
     void deveAtualizarStatus() {
-        chamada.setStatus(StatusChamada.FINALIZADA);
-        chamadaRepository.save(chamada);
+        Chamada cFinalizada = new Chamada(chamada.getId(), chamada.getCreatedAt(), chamada.getUpdatedAt(), chamada.getSenha(), chamada.getPaciente(), chamada.getServico(), chamada.getAtendente(), StatusChamada.FINALIZADA, chamada.getPrioridade(), chamada.getDataChamada(), chamada.getDataInicioAtendimento(), java.time.LocalDateTime.now());
+        chamadaRepository.save(cFinalizada);
 
         Optional<Chamada> found = chamadaRepository.findById(chamada.getId());
         assertThat(found).isPresent();
@@ -144,11 +136,9 @@ class ChamadaRepositoryTest extends BaseIntegrationTest {
     @Test
     @DisplayName("Deve salvar e buscar tentativas por sala")
     void deveBuscarTentativasPorSala() {
-        Sala sala = salaRepository.save(Sala.builder().nome("Sala 1").numero("1").descricao("Consulta").build());
+        Sala sala = salaRepository.save(new Sala(null, null, null, "Sala 1", "1", "Consulta", true));
 
-        TentativaChamada tentativa = TentativaChamada.builder()
-                .chamada(chamada).sala(sala).dataTentativa(java.time.LocalDateTime.now())
-                .sucesso(true).observacao("Atendimento realizado").build();
+        TentativaChamada tentativa = new TentativaChamada(null, null, null, chamada, sala, java.time.LocalDateTime.now(), true, "Atendimento realizado");
         tentativaChamadaRepository.save(tentativa);
 
         List<TentativaChamada> result = tentativaChamadaRepository.findBySalaId(sala.getId());
@@ -159,12 +149,8 @@ class ChamadaRepositoryTest extends BaseIntegrationTest {
     @Test
     @DisplayName("Deve buscar tentativas ordenadas por data")
     void deveBuscarTentativasOrdenadasPorData() {
-        TentativaChamada t1 = TentativaChamada.builder()
-                .chamada(chamada).dataTentativa(java.time.LocalDateTime.now().minusMinutes(5))
-                .sucesso(false).observacao("Sem resposta").build();
-        TentativaChamada t2 = TentativaChamada.builder()
-                .chamada(chamada).dataTentativa(java.time.LocalDateTime.now())
-                .sucesso(true).observacao("Atendido").build();
+        TentativaChamada t1 = new TentativaChamada(null, null, null, chamada, null, java.time.LocalDateTime.now().minusMinutes(5), false, "Sem resposta");
+        TentativaChamada t2 = new TentativaChamada(null, null, null, chamada, null, java.time.LocalDateTime.now(), true, "Atendido");
         tentativaChamadaRepository.save(t1);
         tentativaChamadaRepository.save(t2);
 

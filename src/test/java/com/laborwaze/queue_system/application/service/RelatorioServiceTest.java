@@ -47,29 +47,10 @@ class RelatorioServiceTest {
 
     @BeforeEach
     void setUp() {
-        Paciente paciente = new Paciente();
-        paciente.setId("pac-001");
-        paciente.setNome("João Silva");
-        paciente.setCpf("111.222.333-44");
-
-        Setor setor = new Setor();
-        setor.setId("setor-001");
-        setor.setNome("Clínica");
-
-        Servico servico = new Servico();
-        servico.setId("srv-001");
-        servico.setNome("Consulta");
-        servico.setSetor(setor);
-
-        chamada = Chamada.builder()
-                .senha("A001")
-                .paciente(paciente)
-                .servico(servico)
-                .status(StatusChamada.AGUARDANDO)
-                .prioridade(NivelPrioridade.NORMAL)
-                .dataChamada(LocalDateTime.of(2024, 1, 15, 10, 0))
-                .build();
-        chamada.setId("chamada-001");
+        Paciente paciente = new Paciente("pac-001", null, null, "João Silva", "111.222.333-44", "email@valido.com", null);
+        Setor setor = new Setor("setor-001", null, null, "Clínica", "Setor", true);
+        Servico servico = new Servico("srv-001", null, null, "Consulta", "C", "Consulta", null, setor, true);
+        chamada = new Chamada("chamada-001", null, null, "A001", paciente, servico, null, StatusChamada.AGUARDANDO, NivelPrioridade.NORMAL, LocalDateTime.of(2024, 1, 15, 10, 0), null, null);
 
     }
 

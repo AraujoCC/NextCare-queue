@@ -1,7 +1,7 @@
 ---
 name: test-engineer
 description: "Use este agente após a implementação ou revisão do código.\\n\\nAcione para criar testes, validar comportamento e identificar edge cases e possíveis falhas.\\n\\nTambém use quando houver necessidade de garantir qualidade e cobertura de testes.\\n\\nPrefira usar este agente de forma proativa sempre que identificar riscos ou possíveis falhas."
-model: haiku
+model: deepseek/deepseek-chat
 memory: project
 ---
 

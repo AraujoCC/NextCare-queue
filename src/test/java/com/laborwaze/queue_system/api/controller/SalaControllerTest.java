@@ -45,14 +45,7 @@ class SalaControllerTest {
     private JwtAuthFilter jwtAuthFilter;
 
     private Sala criarSala() {
-        Sala sala = Sala.builder()
-                .nome("Sala 1")
-                .numero("1")
-                .descricao("Consulta")
-                .ativo(true)
-                .build();
-        sala.setId("sala-001");
-        return sala;
+        return new Sala("sala-001", null, null, "Sala 1", "1", "Consulta", true);
     }
 
     @Test
@@ -99,7 +92,7 @@ class SalaControllerTest {
         when(salaService.buscarPorId("inexistente")).thenReturn(Optional.empty());
 
         mockMvc.perform(get("/api/salas/inexistente"))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isNotFound());
     }
 
     @Test
@@ -112,10 +105,10 @@ class SalaControllerTest {
     @Test
     @DisplayName("Deve retornar erro ao desativar sala inexistente")
     void deveLancarErroAoDesativarSalaInexistente() throws Exception {
-        doThrow(new IllegalArgumentException("Sala não encontrada"))
+        doThrow(new com.laborwaze.queue_system.domain.exception.ResourceNotFoundException("Sala não encontrada"))
                 .when(salaService).desativar("inexistente");
 
         mockMvc.perform(delete("/api/salas/inexistente"))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isNotFound());
     }
 }

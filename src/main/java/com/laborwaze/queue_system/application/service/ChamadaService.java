@@ -5,6 +5,7 @@ import com.laborwaze.queue_system.application.dto.PainelEventoDTO;
 import com.laborwaze.queue_system.application.port.PainelPublisherPort;
 import com.laborwaze.queue_system.domain.enums.NivelPrioridade;
 import com.laborwaze.queue_system.domain.enums.StatusChamada;
+import com.laborwaze.queue_system.domain.exception.ResourceNotFoundException;
 import com.laborwaze.queue_system.domain.model.*;
 import com.laborwaze.queue_system.domain.repository.*;
 import lombok.RequiredArgsConstructor;
@@ -30,20 +31,12 @@ public class ChamadaService {
     @Transactional
     public Chamada criarChamada(ChamadaRequest request) {
         Paciente paciente = pacienteRepository.findById(request.pacienteId())
-                .orElseThrow(() -> new IllegalArgumentException("Paciente não encontrado"));
+                .orElseThrow(() -> new ResourceNotFoundException("Paciente não encontrado"));
         Servico servico = servicoRepository.findById(request.servicoId())
-                .orElseThrow(() -> new IllegalArgumentException("Serviço não encontrado"));
+                .orElseThrow(() -> new ResourceNotFoundException("Serviço não encontrado"));
 
-        String senha = gerarSenha(servico);
-
-        Chamada chamada = Chamada.builder()
-                .senha(senha)
-                .paciente(paciente)
-                .servico(servico)
-                .status(StatusChamada.AGUARDANDO)
-                .prioridade(parsePrioridade(request.prioridade()))
-                .dataChamada(LocalDateTime.now())
-                .build();
+        long count = chamadaRepository.countByStatus(StatusChamada.AGUARDANDO);
+        Chamada chamada = Chamada.criarGeraSenha(paciente, servico, parsePrioridade(request.prioridade()), count);
 
         chamada = chamadaRepository.save(chamada);
 
@@ -64,24 +57,16 @@ public class ChamadaService {
     @Transactional
     public Optional<Chamada> chamarParaAtendimento(String chamadaId, String atendenteId, String salaId) {
         Chamada chamada = chamadaRepository.findById(chamadaId)
-                .orElseThrow(() -> new IllegalArgumentException("Chamada não encontrada"));
+                .orElseThrow(() -> new ResourceNotFoundException("Chamada não encontrada"));
         Usuario atendente = usuarioRepository.findById(atendenteId)
-                .orElseThrow(() -> new IllegalArgumentException("Atendente não encontrado"));
+                .orElseThrow(() -> new ResourceNotFoundException("Atendente não encontrado"));
 
-        chamada.setStatus(StatusChamada.EM_ATENDIMENTO);
-        chamada.setAtendente(atendente);
-        chamada.setDataInicioAtendimento(LocalDateTime.now());
+        chamada.chamarParaAtendimento(atendente);
         chamada = chamadaRepository.save(chamada);
 
         Sala sala = salaId != null ? salaRepository.findById(salaId).orElse(null) : null;
 
-        TentativaChamada tentativa = TentativaChamada.builder()
-                .chamada(chamada)
-                .sala(sala)
-                .dataTentativa(LocalDateTime.now())
-                .sucesso(true)
-                .observacao("Chamado para atendimento")
-                .build();
+        TentativaChamada tentativa = new TentativaChamada(null, null, null, chamada, sala, LocalDateTime.now(), true, "Chamado para atendimento");
         tentativaChamadaRepository.save(tentativa);
 
         PainelEventoDTO evento = new PainelEventoDTO(
@@ -101,19 +86,18 @@ public class ChamadaService {
     @Transactional
     public Chamada finalizarChamada(String chamadaId) {
         Chamada chamada = chamadaRepository.findById(chamadaId)
-                .orElseThrow(() -> new IllegalArgumentException("Chamada não encontrada"));
+                .orElseThrow(() -> new ResourceNotFoundException("Chamada não encontrada"));
 
-        chamada.setStatus(StatusChamada.FINALIZADA);
-        chamada.setDataFimAtendimento(LocalDateTime.now());
+        chamada.finalizar();
         return chamadaRepository.save(chamada);
     }
 
     @Transactional
     public Chamada cancelarChamada(String chamadaId) {
         Chamada chamada = chamadaRepository.findById(chamadaId)
-                .orElseThrow(() -> new IllegalArgumentException("Chamada não encontrada"));
+                .orElseThrow(() -> new ResourceNotFoundException("Chamada não encontrada"));
 
-        chamada.setStatus(StatusChamada.CANCELADA);
+        chamada.cancelar();
         return chamadaRepository.save(chamada);
     }
 
@@ -141,11 +125,5 @@ public class ChamadaService {
             case "prioridade" -> NivelPrioridade.PRIORIDADE;
             default -> NivelPrioridade.NORMAL;
         };
-    }
-
-    private String gerarSenha(Servico servico) {
-        long count = chamadaRepository.countByStatus(StatusChamada.AGUARDANDO) + 1;
-        String prefixo = servico.getCodigo() != null ? servico.getCodigo().substring(0, Math.min(servico.getCodigo().length(), 1)).toUpperCase() : "A";
-        return String.format("%s%03d", prefixo, count);
     }
 }

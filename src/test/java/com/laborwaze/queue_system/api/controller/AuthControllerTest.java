@@ -38,15 +38,7 @@ class AuthControllerTest {
     private JwtAuthFilter jwtAuthFilter;
 
     private Usuario criarUsuario() {
-        Usuario usuario = Usuario.builder()
-                .login("joao.silva")
-                .email("joao@email.com")
-                .senha("encoded")
-                .papel(PapelUsuario.ATENDENTE)
-                .ativo(true)
-                .build();
-        usuario.setId("user-001");
-        return usuario;
+        return new Usuario("user-001", null, null, "Joao Silva", "joao.silva", "encoded", "joao@email.com", PapelUsuario.ATENDENTE, null, true);
     }
 
     @Test
@@ -71,7 +63,7 @@ class AuthControllerTest {
     @DisplayName("Deve lancar erro com credenciais invalidas")
     void deveLancarErroComCredenciaisInvalidas() throws Exception {
         when(authService.authenticate(anyString(), anyString()))
-                .thenThrow(new IllegalArgumentException("Credenciais inválidas"));
+                .thenThrow(new com.laborwaze.queue_system.domain.exception.BusinessRuleException("Credenciais inválidas"));
 
         LoginRequest request = new LoginRequest("joao.silva", "senha-errada");
 

@@ -4,11 +4,13 @@ import com.laborwaze.queue_system.api.request.SalaRequest;
 import com.laborwaze.queue_system.api.response.SalaResponse;
 import com.laborwaze.queue_system.application.service.SalaService;
 import com.laborwaze.queue_system.domain.model.Sala;
+import com.laborwaze.queue_system.domain.exception.ResourceNotFoundException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -22,6 +24,7 @@ public class SalaController {
     private final SalaService salaService;
 
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Criar sala", description = "Cria uma nova sala no sistema")
     public ResponseEntity<SalaResponse> criar(@Valid @RequestBody SalaRequest req) {
         Sala sala = salaService.criar(req.nome(), req.numero(), req.descricao());
@@ -41,11 +44,12 @@ public class SalaController {
     @Operation(summary = "Buscar sala por ID", description = "Retorna uma sala pelo seu ID")
     public ResponseEntity<SalaResponse> buscarPorId(@PathVariable String id) {
         Sala sala = salaService.buscarPorId(id)
-                .orElseThrow(() -> new IllegalArgumentException("Sala não encontrada"));
+                .orElseThrow(() -> new ResourceNotFoundException("Sala não encontrada"));
         return ResponseEntity.ok(SalaResponse.fromEntity(sala));
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Desativar sala", description = "Desativa uma sala pelo seu ID")
     public ResponseEntity<Void> desativar(@PathVariable String id) {
         salaService.desativar(id);

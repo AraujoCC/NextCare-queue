@@ -39,14 +39,7 @@ class AuthServiceTest {
 
     @BeforeEach
     void setUp() {
-        usuario = Usuario.builder()
-                .login("joao.silva")
-                .email("joao@email.com")
-                .senha("$2a$10$encodedPasswordHash")
-                .papel(PapelUsuario.ATENDENTE)
-                .ativo(true)
-                .build();
-        usuario.setId("user-001");
+        usuario = new Usuario("user-001", null, null, "Joao Silva", "joao.silva", "$2a$10$encodedPasswordHash", "joao@email.com", PapelUsuario.ATENDENTE, null, true);
     }
 
     @Test
@@ -71,8 +64,8 @@ class AuthServiceTest {
         when(passwordEncoder.matches("senha-errada", "$2a$10$encodedPasswordHash")).thenReturn(false);
 
         assertThatThrownBy(() -> authService.authenticate("joao.silva", "senha-errada"))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("Credenciais inv\u00e1lidas");
+                .isInstanceOf(com.laborwaze.queue_system.domain.exception.BusinessRuleException.class)
+                .hasMessageContaining("Credenciais");
 
         verify(jwtUtil, never()).gerarToken(any());
     }
@@ -83,8 +76,8 @@ class AuthServiceTest {
         when(usuarioRepository.findByLogin("usuario-inexistente")).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> authService.authenticate("usuario-inexistente", "senha123"))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("Credenciais inv\u00e1lidas");
+                .isInstanceOf(com.laborwaze.queue_system.domain.exception.ResourceNotFoundException.class)
+                .hasMessageContaining("Credenciais");
 
         verify(passwordEncoder, never()).matches(any(), any());
         verify(jwtUtil, never()).gerarToken(any());

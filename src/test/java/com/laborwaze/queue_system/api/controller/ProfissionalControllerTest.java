@@ -45,15 +45,7 @@ class ProfissionalControllerTest {
     private JwtAuthFilter jwtAuthFilter;
 
     private Usuario criarProfissional() {
-        Usuario usuario = Usuario.builder()
-                .login("maria.silva")
-                .email("maria@email.com")
-                .senha("encoded")
-                .papel(PapelUsuario.ATENDENTE)
-                .ativo(true)
-                .build();
-        usuario.setId("prof-001");
-        return usuario;
+        return new Usuario("prof-001", null, null, "Maria Silva", "maria.silva", "encoded", "maria@email.com", PapelUsuario.ATENDENTE, null, true);
     }
 
     @Test
@@ -102,7 +94,7 @@ class ProfissionalControllerTest {
         when(profissionalService.buscarPorId("inexistente")).thenReturn(Optional.empty());
 
         mockMvc.perform(get("/api/profissionais/inexistente"))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isNotFound());
     }
 
     @Test
@@ -115,10 +107,10 @@ class ProfissionalControllerTest {
     @Test
     @DisplayName("Deve retornar erro ao desativar profissional inexistente")
     void deveLancarErroAoDesativarProfissionalInexistente() throws Exception {
-        doThrow(new IllegalArgumentException("Profissional não encontrado"))
+        doThrow(new com.laborwaze.queue_system.domain.exception.ResourceNotFoundException("Profissional não encontrado"))
                 .when(profissionalService).desativar("inexistente");
 
         mockMvc.perform(delete("/api/profissionais/inexistente"))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isNotFound());
     }
 }

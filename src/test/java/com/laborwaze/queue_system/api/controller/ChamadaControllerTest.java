@@ -48,22 +48,14 @@ class ChamadaControllerTest {
     private JwtAuthFilter jwtAuthFilter;
 
     private Chamada criarChamada() {
-        Paciente paciente = Paciente.builder().nome("João").cpf("111.222.333-44").email("joao@email.com").build();
-        paciente.setId("pac-001");
-
-        Setor setor = Setor.builder().nome("Clínica").descricao("Setor").ativo(true).build();
-        setor.setId("setor-001");
-
-        Servico servico = Servico.builder().codigo("C").nome("Consulta").descricao("Consulta geral").setor(setor).ativo(true).build();
-        servico.setId("srv-001");
-
-        Chamada chamada = Chamada.builder()
-                .senha("C001").paciente(paciente).servico(servico)
-                .status(StatusChamada.AGUARDANDO).prioridade(NivelPrioridade.NORMAL)
-                .prioridade(NivelPrioridade.NORMAL)
-                .dataChamada(LocalDateTime.of(2024, 1, 15, 10, 0)).build();
-        chamada.setId("chamada-001");
-        return chamada;
+        Paciente paciente = new Paciente("pac-001", null, null, "João", "111.222.333-44", "joao@email.com", null);
+        Setor setor = new Setor("setor-001", null, null, "Clínica", "Setor", true);
+        Servico servico = new Servico("srv-001", null, null, "Consulta", "C", "Consulta geral", null, setor, true);
+        
+        return new Chamada(
+            "chamada-001", null, null, "C001", paciente, servico, null, 
+            StatusChamada.AGUARDANDO, NivelPrioridade.NORMAL, LocalDateTime.of(2024, 1, 15, 10, 0), null, null
+        );
     }
 
     @Test
@@ -126,9 +118,9 @@ class ChamadaControllerTest {
     @Test
     @DisplayName("Deve chamar para atendimento")
     void deveChamarParaAtendimento() throws Exception {
-        Chamada chamada = criarChamada();
-        chamada.setStatus(StatusChamada.EM_ATENDIMENTO);
-        chamada.setDataInicioAtendimento(LocalDateTime.now());
+        Chamada c = criarChamada();
+        Usuario atendente = new Usuario("atendente-001", null, null, "Med", "login", "senha", "email", null, null, true);
+        Chamada chamada = new Chamada("chamada-001", null, null, "C001", c.getPaciente(), c.getServico(), atendente, StatusChamada.EM_ATENDIMENTO, NivelPrioridade.NORMAL, c.getDataChamada(), LocalDateTime.now(), null);
         when(chamadaService.chamarParaAtendimento("chamada-001", "atendente-001", "sala-001"))
                 .thenReturn(Optional.of(chamada));
 
@@ -142,9 +134,8 @@ class ChamadaControllerTest {
     @Test
     @DisplayName("Deve finalizar chamada")
     void deveFinalizarChamada() throws Exception {
-        Chamada chamada = criarChamada();
-        chamada.setStatus(StatusChamada.FINALIZADA);
-        chamada.setDataFimAtendimento(LocalDateTime.now());
+        Chamada c = criarChamada();
+        Chamada chamada = new Chamada("chamada-001", null, null, "C001", c.getPaciente(), c.getServico(), null, StatusChamada.FINALIZADA, NivelPrioridade.NORMAL, c.getDataChamada(), c.getDataInicioAtendimento(), LocalDateTime.now());
         when(chamadaService.finalizarChamada("chamada-001")).thenReturn(chamada);
 
         mockMvc.perform(put("/api/chamadas/chamada-001/finalizar"))
@@ -155,8 +146,8 @@ class ChamadaControllerTest {
     @Test
     @DisplayName("Deve cancelar chamada")
     void deveCancelarChamada() throws Exception {
-        Chamada chamada = criarChamada();
-        chamada.setStatus(StatusChamada.CANCELADA);
+        Chamada c = criarChamada();
+        Chamada chamada = new Chamada("chamada-001", null, null, "C001", c.getPaciente(), c.getServico(), null, StatusChamada.CANCELADA, NivelPrioridade.NORMAL, c.getDataChamada(), null, null);
         when(chamadaService.cancelarChamada("chamada-001")).thenReturn(chamada);
 
         mockMvc.perform(put("/api/chamadas/chamada-001/cancelar"))

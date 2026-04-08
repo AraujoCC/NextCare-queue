@@ -11,6 +11,7 @@ import com.laborwaze.queue_system.domain.model.Paciente;
 import com.laborwaze.queue_system.domain.model.Sala;
 import com.laborwaze.queue_system.domain.model.Servico;
 import com.laborwaze.queue_system.domain.model.Usuario;
+import com.laborwaze.queue_system.domain.model.Setor;
 import com.laborwaze.queue_system.domain.repository.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -59,74 +60,28 @@ class ChamadaServiceTest {
     }
 
     private Paciente criarPaciente() {
-        Paciente p = Paciente.builder()
-                .nome("Jo\u00e3o")
-                .cpf("123.456.789-00")
-                .email("joao@email.com")
-                .build();
-        p.setId("paciente-001");
-        return p;
+        return new Paciente("paciente-001", null, null, "João", "123.456.789-00", "joao@email.com", null);
     }
 
     private Servico criarServico() {
-        Servico s = Servico.builder()
-                .codigo("A")
-                .nome("Consulta Geral")
-                .descricao("Consulta geral")
-                .build();
-        s.setId("servico-001");
-        return s;
+        Setor setor = new Setor("setor-001", null, null, "Clínica", "Setor", true);
+        return new Servico("servico-001", null, null, "Consulta Geral", "A", "Consulta geral", null, setor, true);
     }
 
     private Usuario criarAtendente() {
-        Usuario a = Usuario.builder()
-                .nome("Maria Silva")
-                .login("maria.silva")
-                .email("maria@email.com")
-                .senha("hashed")
-                .papel(PapelUsuario.ATENDENTE)
-                .build();
-        a.setId("atendente-001");
-        return a;
+        return new Usuario("atendente-001", null, null, "Maria Silva", "maria.silva", "hashed", "maria@email.com", PapelUsuario.ATENDENTE, null, true);
     }
 
     private Sala criarSala() {
-        Sala s = Sala.builder()
-                .nome("Sala 1")
-                .numero("1")
-                .descricao("Consulta")
-                .ativo(true)
-                .build();
-        s.setId("sala-001");
-        return s;
+        return new Sala("sala-001", null, null, "Sala 1", "1", "Consulta", true);
     }
 
     private Chamada criarChamada() {
-        Chamada ch = Chamada.builder()
-                .senha("A001")
-                .paciente(paciente)
-                .servico(servico)
-                .status(StatusChamada.AGUARDANDO)
-                .prioridade(NivelPrioridade.NORMAL)
-                .dataChamada(LocalDateTime.now())
-                .build();
-        ch.setId("chamada-001");
-        return ch;
+        return new Chamada("chamada-001", null, null, "A001", paciente, servico, null, StatusChamada.AGUARDANDO, NivelPrioridade.NORMAL, LocalDateTime.now(), null, null);
     }
 
     private Chamada criarChamadaEmAtendimento() {
-        Usuario atendente = criarAtendente();
-        Chamada ch = Chamada.builder()
-                .senha("A002")
-                .paciente(paciente)
-                .servico(servico)
-                .atendente(atendente)
-                .status(StatusChamada.EM_ATENDIMENTO)
-                .prioridade(NivelPrioridade.NORMAL)
-                .dataChamada(LocalDateTime.now())
-                .build();
-        ch.setId("chamada-002");
-        return ch;
+        return new Chamada("chamada-002", null, null, "A002", paciente, servico, criarAtendente(), StatusChamada.EM_ATENDIMENTO, NivelPrioridade.NORMAL, LocalDateTime.now(), LocalDateTime.now(), null);
     }
 
     @Test
@@ -139,8 +94,7 @@ class ChamadaServiceTest {
         when(chamadaRepository.countByStatus(StatusChamada.AGUARDANDO)).thenReturn(0L);
         when(chamadaRepository.save(any(Chamada.class))).thenAnswer(invocation -> {
             Chamada saved = invocation.getArgument(0);
-            saved.setId("chamada-001");
-            return saved;
+            return new Chamada("chamada-001", null, null, saved.getSenha(), saved.getPaciente(), saved.getServico(), saved.getAtendente(), saved.getStatus(), saved.getPrioridade(), saved.getDataChamada(), saved.getDataInicioAtendimento(), saved.getDataFimAtendimento());
         });
 
         Chamada result = chamadaService.criarChamada(request);
@@ -163,8 +117,7 @@ class ChamadaServiceTest {
         when(chamadaRepository.countByStatus(StatusChamada.AGUARDANDO)).thenReturn(0L);
         when(chamadaRepository.save(any(Chamada.class))).thenAnswer(invocation -> {
             Chamada saved = invocation.getArgument(0);
-            saved.setId("chamada-001");
-            return saved;
+            return new Chamada("chamada-001", null, null, saved.getSenha(), saved.getPaciente(), saved.getServico(), saved.getAtendente(), saved.getStatus(), saved.getPrioridade(), saved.getDataChamada(), saved.getDataInicioAtendimento(), saved.getDataFimAtendimento());
         });
 
         Chamada result = chamadaService.criarChamada(request);
@@ -184,8 +137,8 @@ class ChamadaServiceTest {
         when(pacienteRepository.findById("paciente-inexistente")).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> chamadaService.criarChamada(request))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("Paciente n\u00e3o encontrado");
+                .isInstanceOf(com.laborwaze.queue_system.domain.exception.ResourceNotFoundException.class)
+                .hasMessageContaining("Paciente");
 
         verify(chamadaRepository, never()).save(any());
         verify(painelPublisher, never()).publicarEvento(any());
@@ -216,8 +169,8 @@ class ChamadaServiceTest {
         when(chamadaRepository.findById("chamada-inexistente")).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> chamadaService.chamarParaAtendimento("chamada-inexistente", "atendente-001", "sala-001"))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("Chamada n\u00e3o encontrada");
+                .isInstanceOf(com.laborwaze.queue_system.domain.exception.ResourceNotFoundException.class)
+                .hasMessageContaining("Chamada");
 
         verify(usuarioRepository, never()).findById(any());
         verify(tentativaChamadaRepository, never()).save(any());
@@ -226,7 +179,8 @@ class ChamadaServiceTest {
     @Test
     @DisplayName("Deve finalizar chamada")
     void deveFinalizarChamada() {
-        when(chamadaRepository.findById("chamada-001")).thenReturn(Optional.of(chamada));
+        Chamada chamadaEmAtendimento = criarChamadaEmAtendimento();
+        when(chamadaRepository.findById("chamada-001")).thenReturn(Optional.of(chamadaEmAtendimento));
         when(chamadaRepository.save(any(Chamada.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         Chamada result = chamadaService.finalizarChamada("chamada-001");
@@ -234,7 +188,7 @@ class ChamadaServiceTest {
         assertThat(result).isNotNull();
         assertThat(result.getStatus()).isEqualTo(StatusChamada.FINALIZADA);
         assertThat(result.getDataFimAtendimento()).isNotNull();
-        verify(chamadaRepository, times(1)).save(chamada);
+        verify(chamadaRepository, times(1)).save(chamadaEmAtendimento);
     }
 
     @Test

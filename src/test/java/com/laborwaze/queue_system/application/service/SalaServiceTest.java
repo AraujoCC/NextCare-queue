@@ -31,13 +31,7 @@ class SalaServiceTest {
 
     @BeforeEach
     void setUp() {
-        sala = Sala.builder()
-                .nome("Sala 1")
-                .numero("1")
-                .descricao("Sala de consulta")
-                .ativo(true)
-                .build();
-        sala.setId("sala-001");
+        sala = new Sala("sala-001", null, null, "Sala 1", "1", "Sala de consulta", true);
     }
 
     @Test
@@ -45,8 +39,7 @@ class SalaServiceTest {
     void deveCriarSalaComSucesso() {
         when(salaRepository.save(any(Sala.class))).thenAnswer(invocation -> {
             Sala saved = invocation.getArgument(0);
-            saved.setId("sala-001");
-            return saved;
+            return new Sala("sala-001", null, null, saved.getNome(), saved.getNumero(), saved.getDescricao(), saved.getAtivo());
         });
 
         Sala result = salaService.criar("Sala 1", "1", "Sala de consulta");
@@ -91,8 +84,8 @@ class SalaServiceTest {
         when(salaRepository.findById("sala-inexistente")).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> salaService.desativar("sala-inexistente"))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("Sala n\u00e3o encontrada");
+                .isInstanceOf(com.laborwaze.queue_system.domain.exception.ResourceNotFoundException.class)
+                .hasMessageContaining("Sala não encontrada");
 
         verify(salaRepository, never()).save(any());
     }

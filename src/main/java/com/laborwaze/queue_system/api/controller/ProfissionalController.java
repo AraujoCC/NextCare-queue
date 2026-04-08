@@ -4,11 +4,13 @@ import com.laborwaze.queue_system.api.request.ProfissionalRequest;
 import com.laborwaze.queue_system.api.response.ProfissionalResponse;
 import com.laborwaze.queue_system.application.service.ProfissionalService;
 import com.laborwaze.queue_system.domain.model.Usuario;
+import com.laborwaze.queue_system.domain.exception.ResourceNotFoundException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -22,6 +24,7 @@ public class ProfissionalController {
     private final ProfissionalService profissionalService;
 
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Criar profissional", description = "Cria um novo profissional no sistema")
     public ResponseEntity<ProfissionalResponse> criar(@Valid @RequestBody ProfissionalRequest req) {
         Usuario profissional = profissionalService.criar(
@@ -32,6 +35,7 @@ public class ProfissionalController {
     }
 
     @GetMapping
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERVISOR')")
     @Operation(summary = "Listar profissionais ativos", description = "Retorna todos os profissionais ativos")
     public ResponseEntity<List<ProfissionalResponse>> listarAtivos() {
         List<ProfissionalResponse> profissionais = profissionalService.buscarAtivos().stream()
@@ -41,14 +45,16 @@ public class ProfissionalController {
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERVISOR')")
     @Operation(summary = "Buscar profissional por ID", description = "Retorna um profissional pelo seu ID")
     public ResponseEntity<ProfissionalResponse> buscarPorId(@PathVariable String id) {
         Usuario profissional = profissionalService.buscarPorId(id)
-                .orElseThrow(() -> new IllegalArgumentException("Profissional não encontrado"));
+                .orElseThrow(() -> new ResourceNotFoundException("Profissional não encontrado"));
         return ResponseEntity.ok(ProfissionalResponse.fromEntity(profissional));
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Desativar profissional", description = "Desativa um profissional pelo seu ID")
     public ResponseEntity<Void> desativar(@PathVariable String id) {
         profissionalService.desativar(id);

@@ -2,6 +2,8 @@ package com.laborwaze.queue_system.application.service;
 
 import com.laborwaze.queue_system.config.security.JwtUtil;
 import com.laborwaze.queue_system.domain.model.Usuario;
+import com.laborwaze.queue_system.domain.exception.BusinessRuleException;
+import com.laborwaze.queue_system.domain.exception.ResourceNotFoundException;
 import com.laborwaze.queue_system.domain.repository.UsuarioRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -19,14 +21,14 @@ public class AuthService {
     @Transactional(readOnly = true)
     public String authenticate(String login, String senha) {
         Usuario usuario = usuarioRepository.findByLogin(login)
-                .orElseThrow(() -> new IllegalArgumentException("Credenciais inválidas"));
+                .orElseThrow(() -> new ResourceNotFoundException("Credenciais inválidas"));
 
         if (!passwordEncoder.matches(senha, usuario.getSenha())) {
-            throw new IllegalArgumentException("Credenciais inválidas");
+            throw new BusinessRuleException("Credenciais inválidas");
         }
 
         if (!usuario.getAtivo()) {
-            throw new IllegalArgumentException("Usuário desativado");
+            throw new BusinessRuleException("Usuário desativado");
         }
 
         return jwtUtil.gerarToken(usuario);
@@ -35,6 +37,6 @@ public class AuthService {
     @Transactional(readOnly = true)
     public Usuario loadUserByLogin(String login) {
         return usuarioRepository.findByLogin(login)
-                .orElseThrow(() -> new IllegalArgumentException("Usuário não encontrado"));
+                .orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado"));
     }
 }
