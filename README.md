@@ -1,4 +1,4 @@
-# Laborwaze Queue System
+# NextCare Queue Syste
 
 Sistema de gerenciamento de filas para atendimento healthcare.
 
