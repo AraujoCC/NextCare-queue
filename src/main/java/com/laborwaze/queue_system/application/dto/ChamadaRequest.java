@@ -6,6 +6,6 @@ import jakarta.validation.constraints.NotNull;
 public record ChamadaRequest(
     @NotBlank String pacienteId,
     @NotBlank String servicoId,
-    boolean prioridade,
+    String prioridade,
     String observacoes
 ) {}

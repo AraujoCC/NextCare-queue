@@ -1,5 +1,6 @@
 package com.laborwaze.queue_system.api.response;
 
+import com.laborwaze.queue_system.domain.enums.NivelPrioridade;
 import com.laborwaze.queue_system.domain.enums.StatusChamada;
 import com.laborwaze.queue_system.domain.model.Chamada;
 
@@ -12,7 +13,7 @@ public record ChamadaResponse(
     String servicoNome,
     String atendenteNome,
     StatusChamada status,
-    boolean prioridade,
+    NivelPrioridade prioridade,
     LocalDateTime dataChamada,
     LocalDateTime dataInicioAtendimento,
     LocalDateTime dataFimAtendimento
@@ -25,7 +26,7 @@ public record ChamadaResponse(
             c.getServico()   != null ? c.getServico().getNome()   : null,
             c.getAtendente() != null ? c.getAtendente().getNome() : null,
             c.getStatus(),
-            c.getPrioridade() != null && c.getPrioridade(),
+            c.getPrioridade() != null ? c.getPrioridade() : NivelPrioridade.NORMAL,
             c.getDataChamada(),
             c.getDataInicioAtendimento(),
             c.getDataFimAtendimento()

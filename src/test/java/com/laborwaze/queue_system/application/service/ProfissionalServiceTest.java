@@ -2,7 +2,7 @@ package com.laborwaze.queue_system.application.service;
 
 import com.laborwaze.queue_system.domain.enums.PapelUsuario;
 import com.laborwaze.queue_system.domain.model.Usuario;
-import com.laborwaze.queue_system.domain.repository.ProfissionalRepository;
+import com.laborwaze.queue_system.domain.repository.UsuarioRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -24,7 +24,7 @@ import static org.mockito.Mockito.*;
 class ProfissionalServiceTest {
 
     @Mock
-    private ProfissionalRepository profissionalRepository;
+    private UsuarioRepository usuarioRepository;
 
     @Mock
     private PasswordEncoder passwordEncoder;
@@ -49,16 +49,16 @@ class ProfissionalServiceTest {
     @Test
     @DisplayName("Deve criar profissional com sucesso")
     void deveCriarProfissionalComSucesso() {
-        when(profissionalRepository.existsByLogin("maria.silva")).thenReturn(false);
+        when(usuarioRepository.existsByLogin("maria.silva")).thenReturn(false);
         when(passwordEncoder.encode("senha123")).thenReturn("encoded-hash");
-        when(profissionalRepository.save(any(Usuario.class))).thenAnswer(invocation -> {
+        when(usuarioRepository.save(any(Usuario.class))).thenAnswer(invocation -> {
             Usuario saved = invocation.getArgument(0);
             saved.setId("prof-001");
             return saved;
         });
 
-        Usuario result = profissionalService.criar("Maria Silva", "maria@email.com",
-                "maria.silva", "senha123", PapelUsuario.ATENDENTE);
+            Usuario result = profissionalService.criar("Maria Silva", "maria.silva",
+                "maria@email.com", "senha123", PapelUsuario.ATENDENTE);
 
         assertThat(result).isNotNull();
         assertThat(result.getLogin()).isEqualTo("maria.silva");
@@ -67,46 +67,46 @@ class ProfissionalServiceTest {
         assertThat(result.getPapel()).isEqualTo(PapelUsuario.ATENDENTE);
         assertThat(result.getAtivo()).isTrue();
         verify(passwordEncoder, times(1)).encode("senha123");
-        verify(profissionalRepository, times(1)).save(any(Usuario.class));
+        verify(usuarioRepository, times(1)).save(any(Usuario.class));
     }
 
     @Test
     @DisplayName("Deve lancar erro se login ja existe")
     void deveLancarErroSeLoginJaExiste() {
-        when(profissionalRepository.existsByLogin("maria.silva")).thenReturn(true);
+        when(usuarioRepository.existsByLogin("maria.silva")).thenReturn(true);
 
-        assertThatThrownBy(() -> profissionalService.criar("Maria Silva", "maria@email.com",
-                "maria.silva", "senha123", PapelUsuario.ATENDENTE))
+        assertThatThrownBy(() -> profissionalService.criar("Maria Silva", "maria.silva",
+                "maria@email.com", "senha123", PapelUsuario.ATENDENTE))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("Login j\u00e1 existe");
 
         verify(passwordEncoder, never()).encode(any());
-        verify(profissionalRepository, never()).save(any());
+        verify(usuarioRepository, never()).save(any());
     }
 
     @Test
     @DisplayName("Deve buscar profissionais ativos")
     void deveBuscarProfissionaisAtivos() {
-        when(profissionalRepository.findByAtivoTrue()).thenReturn(List.of(profissional));
+        when(usuarioRepository.findByAtivoTrue()).thenReturn(List.of(profissional));
 
         var result = profissionalService.buscarAtivos();
 
         assertThat(result).hasSize(1);
         assertThat(result.getFirst().getLogin()).isEqualTo("maria.silva");
         assertThat(result.getFirst().getAtivo()).isTrue();
-        verify(profissionalRepository, times(1)).findByAtivoTrue();
+        verify(usuarioRepository, times(1)).findByAtivoTrue();
     }
 
     @Test
     @DisplayName("Deve desativar profissional")
     void deveDesativarProfissional() {
-        when(profissionalRepository.findById("prof-001")).thenReturn(Optional.of(profissional));
-        when(profissionalRepository.save(any(Usuario.class))).thenReturn(profissional);
+        when(usuarioRepository.findById("prof-001")).thenReturn(Optional.of(profissional));
+        when(usuarioRepository.save(any(Usuario.class))).thenReturn(profissional);
 
         profissionalService.desativar("prof-001");
 
         assertThat(profissional.getAtivo()).isFalse();
-        verify(profissionalRepository, times(1)).findById("prof-001");
-        verify(profissionalRepository, times(1)).save(profissional);
+        verify(usuarioRepository, times(1)).findById("prof-001");
+        verify(usuarioRepository, times(1)).save(profissional);
     }
 }

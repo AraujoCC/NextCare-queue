@@ -9,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.*;
 
 @Service
@@ -20,7 +21,9 @@ public class RelatorioService {
 
     @Transactional(readOnly = true)
     public byte[] gerarRelatorioChamadas(LocalDate inicio, LocalDate fim) throws IOException {
-        List<Chamada> chamadas = chamadaRepository.findAll();
+        LocalDateTime inicioDateTime = inicio.atStartOfDay();
+        LocalDateTime fimDateTime = fim.plusDays(1).atStartOfDay();
+        List<Chamada> chamadas = chamadaRepository.findByDataChamadaBetween(inicioDateTime, fimDateTime);
         List<Map<String, Object>> dados = prepararDadosChamadas(chamadas);
         Map<String, Object> params = Map.of(
             "periodoInicio", inicio.toString(),

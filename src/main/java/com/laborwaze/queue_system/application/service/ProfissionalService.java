@@ -2,7 +2,7 @@ package com.laborwaze.queue_system.application.service;
 
 import com.laborwaze.queue_system.domain.enums.PapelUsuario;
 import com.laborwaze.queue_system.domain.model.Usuario;
-import com.laborwaze.queue_system.domain.repository.ProfissionalRepository;
+import com.laborwaze.queue_system.domain.repository.UsuarioRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -15,40 +15,44 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class ProfissionalService {
 
-    private final ProfissionalRepository profissionalRepository;
+    private final UsuarioRepository usuarioRepository;
     private final PasswordEncoder passwordEncoder;
 
     @Transactional
-    public Usuario criar(String nome, String email, String login, String senha, PapelUsuario papel) {
-        if (profissionalRepository.existsByLogin(login)) {
+    public Usuario criar(String nome, String login, String email, String senha, PapelUsuario papel) {
+        if (usuarioRepository.existsByLogin(login)) {
             throw new IllegalArgumentException("Login já existe");
+        }
+        if (usuarioRepository.existsByEmail(email)) {
+            throw new IllegalArgumentException("Email já existe");
         }
 
         Usuario profissional = Usuario.builder()
+                .nome(nome)
                 .login(login)
                 .email(email)
                 .senha(passwordEncoder.encode(senha))
                 .papel(papel)
                 .ativo(true)
                 .build();
-        return profissionalRepository.save(profissional);
+        return usuarioRepository.save(profissional);
     }
 
     @Transactional(readOnly = true)
     public List<Usuario> buscarAtivos() {
-        return profissionalRepository.findByAtivoTrue();
+        return usuarioRepository.findByAtivoTrue();
     }
 
     @Transactional(readOnly = true)
     public Optional<Usuario> buscarPorId(String id) {
-        return profissionalRepository.findById(id);
+        return usuarioRepository.findById(id);
     }
 
     @Transactional
     public void desativar(String id) {
-        Usuario profissional = profissionalRepository.findById(id)
+        Usuario profissional = usuarioRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Profissional não encontrado"));
         profissional.setAtivo(false);
-        profissionalRepository.save(profissional);
+        usuarioRepository.save(profissional);
     }
 }

@@ -1,6 +1,6 @@
 package com.laborwaze.queue_system.api.controller;
 
-import com.laborwaze.queue_system.api.request.LoginRequest;
+import com.laborwaze.queue_system.application.dto.LoginRequest;
 import com.laborwaze.queue_system.api.response.LoginResponse;
 import com.laborwaze.queue_system.application.service.AuthService;
 import com.laborwaze.queue_system.domain.model.Usuario;

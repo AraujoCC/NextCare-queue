@@ -1,5 +1,6 @@
 package com.laborwaze.queue_system.domain.model;
 
+import com.laborwaze.queue_system.domain.enums.NivelPrioridade;
 import com.laborwaze.queue_system.domain.enums.StatusChamada;
 import jakarta.persistence.*;
 import lombok.*;
@@ -28,16 +29,17 @@ public class Chamada extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "atendente_id")
-    private Atendente atendente;
+    private Usuario atendente;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     @Builder.Default
     private StatusChamada status = StatusChamada.AGUARDANDO;
 
-    @Column(name = "prioridade")
+    @Enumerated(EnumType.STRING)
+    @Column(name = "prioridade", nullable = false)
     @Builder.Default
-    private Boolean prioridade = false;
+    private NivelPrioridade prioridade = NivelPrioridade.NORMAL;
 
     @Column(name = "data_chamada", nullable = false)
     @Builder.Default

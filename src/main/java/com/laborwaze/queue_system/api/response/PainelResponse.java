@@ -1,5 +1,7 @@
 package com.laborwaze.queue_system.api.response;
 
+import com.laborwaze.queue_system.domain.enums.NivelPrioridade;
+
 import java.time.LocalDateTime;
 
 public record PainelResponse(
@@ -7,6 +9,6 @@ public record PainelResponse(
     String senha,
     String nomePaciente,
     String salaNumero,
-    boolean prioridade,
+    NivelPrioridade prioridade,
     LocalDateTime timestamp
 ) {}

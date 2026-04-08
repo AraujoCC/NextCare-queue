@@ -8,6 +8,6 @@ public record PainelEventoDTO(
     String senha,
     String nomePaciente,
     String sala,
-    boolean prioridade,
+    String prioridade,
     LocalDateTime timestamp
 ) {}

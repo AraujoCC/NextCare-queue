@@ -4,6 +4,7 @@ import com.laborwaze.queue_system.api.response.PainelResponse;
 import com.laborwaze.queue_system.application.dto.PainelEventoDTO;
 import com.laborwaze.queue_system.application.service.ChamadaService;
 import com.laborwaze.queue_system.application.service.PainelService;
+import com.laborwaze.queue_system.domain.enums.NivelPrioridade;
 import com.laborwaze.queue_system.domain.model.Chamada;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -39,7 +40,7 @@ public class PainelController {
                 chamada.getSenha(),
                 chamada.getPaciente() != null ? chamada.getPaciente().getNome() : null,
                 null,
-                chamada.getPrioridade() != null && chamada.getPrioridade(),
+                chamada.getPrioridade() != null ? chamada.getPrioridade() : NivelPrioridade.NORMAL,
                 chamada.getDataChamada()
         );
     }

@@ -1,9 +1,9 @@
 package com.laborwaze.queue_system.application.service;
 
 import com.laborwaze.queue_system.application.dto.ChamadaRequest;
-import com.laborwaze.queue_system.application.dto.ChamadaResponse;
 import com.laborwaze.queue_system.application.dto.PainelEventoDTO;
 import com.laborwaze.queue_system.application.port.PainelPublisherPort;
+import com.laborwaze.queue_system.domain.enums.NivelPrioridade;
 import com.laborwaze.queue_system.domain.enums.StatusChamada;
 import com.laborwaze.queue_system.domain.model.*;
 import com.laborwaze.queue_system.domain.repository.*;
@@ -22,7 +22,7 @@ public class ChamadaService {
     private final ChamadaRepository chamadaRepository;
     private final PacienteRepository pacienteRepository;
     private final ServicoRepository servicoRepository;
-    private final AtendenteRepository atendenteRepository;
+    private final UsuarioRepository usuarioRepository;
     private final SalaRepository salaRepository;
     private final TentativaChamadaRepository tentativaChamadaRepository;
     private final PainelPublisherPort painelPublisher;
@@ -41,7 +41,7 @@ public class ChamadaService {
                 .paciente(paciente)
                 .servico(servico)
                 .status(StatusChamada.AGUARDANDO)
-                .prioridade(request.prioridade())
+                .prioridade(parsePrioridade(request.prioridade()))
                 .dataChamada(LocalDateTime.now())
                 .build();
 
@@ -53,7 +53,7 @@ public class ChamadaService {
             chamada.getSenha(),
             paciente.getNome(),
             null,
-            chamada.getPrioridade() != null && chamada.getPrioridade(),
+            chamada.getPrioridade().name(),
             LocalDateTime.now()
         );
         painelPublisher.publicarEvento(evento);
@@ -65,7 +65,7 @@ public class ChamadaService {
     public Optional<Chamada> chamarParaAtendimento(String chamadaId, String atendenteId, String salaId) {
         Chamada chamada = chamadaRepository.findById(chamadaId)
                 .orElseThrow(() -> new IllegalArgumentException("Chamada não encontrada"));
-        Atendente atendente = atendenteRepository.findById(atendenteId)
+        Usuario atendente = usuarioRepository.findById(atendenteId)
                 .orElseThrow(() -> new IllegalArgumentException("Atendente não encontrado"));
 
         chamada.setStatus(StatusChamada.EM_ATENDIMENTO);
@@ -90,7 +90,7 @@ public class ChamadaService {
             chamada.getSenha(),
             chamada.getPaciente().getNome(),
             sala != null ? sala.getNumero() : null,
-            chamada.getPrioridade() != null && chamada.getPrioridade(),
+            chamada.getPrioridade().name(),
             LocalDateTime.now()
         );
         painelPublisher.publicarEvento(evento);
@@ -130,6 +130,17 @@ public class ChamadaService {
     @Transactional(readOnly = true)
     public List<Chamada> buscarPorAtendente(String atendenteId) {
         return chamadaRepository.findByAtendenteIdAndStatus(atendenteId, StatusChamada.EM_ATENDIMENTO);
+    }
+
+    private NivelPrioridade parsePrioridade(String prioridade) {
+        if (prioridade == null || prioridade.isBlank()) {
+            return NivelPrioridade.NORMAL;
+        }
+        return switch (prioridade.toLowerCase()) {
+            case "urgente" -> NivelPrioridade.URGENTE;
+            case "prioridade" -> NivelPrioridade.PRIORIDADE;
+            default -> NivelPrioridade.NORMAL;
+        };
     }
 
     private String gerarSenha(Servico servico) {

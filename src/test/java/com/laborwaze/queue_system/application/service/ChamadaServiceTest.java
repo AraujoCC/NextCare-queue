@@ -3,12 +3,14 @@ package com.laborwaze.queue_system.application.service;
 import com.laborwaze.queue_system.application.dto.ChamadaRequest;
 import com.laborwaze.queue_system.application.dto.PainelEventoDTO;
 import com.laborwaze.queue_system.application.port.PainelPublisherPort;
+import com.laborwaze.queue_system.domain.enums.NivelPrioridade;
+import com.laborwaze.queue_system.domain.enums.PapelUsuario;
 import com.laborwaze.queue_system.domain.enums.StatusChamada;
-import com.laborwaze.queue_system.domain.model.Atendente;
 import com.laborwaze.queue_system.domain.model.Chamada;
 import com.laborwaze.queue_system.domain.model.Paciente;
 import com.laborwaze.queue_system.domain.model.Sala;
 import com.laborwaze.queue_system.domain.model.Servico;
+import com.laborwaze.queue_system.domain.model.Usuario;
 import com.laborwaze.queue_system.domain.repository.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -33,7 +35,7 @@ class ChamadaServiceTest {
     @Mock private ChamadaRepository chamadaRepository;
     @Mock private PacienteRepository pacienteRepository;
     @Mock private ServicoRepository servicoRepository;
-    @Mock private AtendenteRepository atendenteRepository;
+    @Mock private UsuarioRepository usuarioRepository;
     @Mock private SalaRepository salaRepository;
     @Mock private TentativaChamadaRepository tentativaChamadaRepository;
     @Mock private PainelPublisherPort painelPublisher;
@@ -43,7 +45,7 @@ class ChamadaServiceTest {
 
     Paciente paciente;
     Servico servico;
-    Atendente atendente;
+    Usuario atendente;
     Chamada chamada;
     Sala sala;
 
@@ -55,8 +57,6 @@ class ChamadaServiceTest {
         chamada = criarChamada();
         sala = criarSala();
     }
-
-    // --- Helper methods ---
 
     private Paciente criarPaciente() {
         Paciente p = Paciente.builder()
@@ -78,10 +78,13 @@ class ChamadaServiceTest {
         return s;
     }
 
-    private Atendente criarAtendente() {
-        Atendente a = Atendente.builder()
+    private Usuario criarAtendente() {
+        Usuario a = Usuario.builder()
                 .nome("Maria Silva")
+                .login("maria.silva")
                 .email("maria@email.com")
+                .senha("hashed")
+                .papel(PapelUsuario.ATENDENTE)
                 .build();
         a.setId("atendente-001");
         return a;
@@ -104,7 +107,7 @@ class ChamadaServiceTest {
                 .paciente(paciente)
                 .servico(servico)
                 .status(StatusChamada.AGUARDANDO)
-                .prioridade(false)
+                .prioridade(NivelPrioridade.NORMAL)
                 .dataChamada(LocalDateTime.now())
                 .build();
         ch.setId("chamada-001");
@@ -112,26 +115,24 @@ class ChamadaServiceTest {
     }
 
     private Chamada criarChamadaEmAtendimento() {
-        Atendente atendente = criarAtendente();
+        Usuario atendente = criarAtendente();
         Chamada ch = Chamada.builder()
                 .senha("A002")
                 .paciente(paciente)
                 .servico(servico)
                 .atendente(atendente)
                 .status(StatusChamada.EM_ATENDIMENTO)
-                .prioridade(false)
+                .prioridade(NivelPrioridade.NORMAL)
                 .dataChamada(LocalDateTime.now())
                 .build();
         ch.setId("chamada-002");
         return ch;
     }
 
-    // --- Test methods ---
-
     @Test
     @DisplayName("Deve criar chamada com sucesso")
     void deveCriarChamadaComSucesso() {
-        ChamadaRequest request = new ChamadaRequest("paciente-001", "servico-001", false, null);
+        ChamadaRequest request = new ChamadaRequest("paciente-001", "servico-001", "normal", null);
 
         when(pacienteRepository.findById("paciente-001")).thenReturn(Optional.of(paciente));
         when(servicoRepository.findById("servico-001")).thenReturn(Optional.of(servico));
@@ -147,7 +148,7 @@ class ChamadaServiceTest {
         assertThat(result).isNotNull();
         assertThat(result.getStatus()).isEqualTo(StatusChamada.AGUARDANDO);
         assertThat(result.getSenha()).isEqualTo("A001");
-        assertThat(result.getPrioridade()).isFalse();
+        assertThat(result.getPrioridade()).isEqualTo(NivelPrioridade.NORMAL);
         verify(chamadaRepository, times(1)).save(any(Chamada.class));
         verify(painelPublisher, times(1)).publicarEvento(any(PainelEventoDTO.class));
     }
@@ -155,7 +156,7 @@ class ChamadaServiceTest {
     @Test
     @DisplayName("Deve criar chamada com prioridade")
     void deveCriarChamadaComPrioridade() {
-        ChamadaRequest request = new ChamadaRequest("paciente-001", "servico-001", true, null);
+        ChamadaRequest request = new ChamadaRequest("paciente-001", "servico-001", "urgente", null);
 
         when(pacienteRepository.findById("paciente-001")).thenReturn(Optional.of(paciente));
         when(servicoRepository.findById("servico-001")).thenReturn(Optional.of(servico));
@@ -170,7 +171,7 @@ class ChamadaServiceTest {
 
         assertThat(result).isNotNull();
         assertThat(result.getStatus()).isEqualTo(StatusChamada.AGUARDANDO);
-        assertThat(result.getPrioridade()).isTrue();
+        assertThat(result.getPrioridade()).isEqualTo(NivelPrioridade.URGENTE);
         verify(chamadaRepository, times(1)).save(any(Chamada.class));
         verify(painelPublisher, times(1)).publicarEvento(any(PainelEventoDTO.class));
     }
@@ -178,7 +179,7 @@ class ChamadaServiceTest {
     @Test
     @DisplayName("Deve lancar erro ao criar chamada com paciente inexistente")
     void deveLancarErroAoCriarChamadaComPacienteInexistente() {
-        ChamadaRequest request = new ChamadaRequest("paciente-inexistente", "servico-001", false, null);
+        ChamadaRequest request = new ChamadaRequest("paciente-inexistente", "servico-001", "normal", null);
 
         when(pacienteRepository.findById("paciente-inexistente")).thenReturn(Optional.empty());
 
@@ -194,7 +195,7 @@ class ChamadaServiceTest {
     @DisplayName("Deve chamar para atendimento")
     void deveChamarParaAtendimento() {
         when(chamadaRepository.findById("chamada-001")).thenReturn(Optional.of(chamada));
-        when(atendenteRepository.findById("atendente-001")).thenReturn(Optional.of(atendente));
+        when(usuarioRepository.findById("atendente-001")).thenReturn(Optional.of(atendente));
         when(salaRepository.findById("sala-001")).thenReturn(Optional.of(sala));
         when(chamadaRepository.save(any(Chamada.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
@@ -218,7 +219,7 @@ class ChamadaServiceTest {
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("Chamada n\u00e3o encontrada");
 
-        verify(atendenteRepository, never()).findById(any());
+        verify(usuarioRepository, never()).findById(any());
         verify(tentativaChamadaRepository, never()).save(any());
     }
 

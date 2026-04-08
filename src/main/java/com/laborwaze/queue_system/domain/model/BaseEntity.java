@@ -20,6 +20,9 @@ public abstract class BaseEntity {
     @Column(updatable = false, nullable = false)
     private String id;
 
+    @Version
+    private Long version;
+
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 

@@ -13,6 +13,9 @@ import lombok.*;
 @EqualsAndHashCode(callSuper = true)
 public class Usuario extends BaseEntity {
 
+    @Column
+    private String nome;
+
     @Column(nullable = false, unique = true)
     private String login;
 
@@ -26,6 +29,10 @@ public class Usuario extends BaseEntity {
     @Column(nullable = false)
     @Builder.Default
     private PapelUsuario papel = PapelUsuario.PACIENTE;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "setor_id")
+    private Setor setor;
 
     @Column(name = "ativo")
     @Builder.Default

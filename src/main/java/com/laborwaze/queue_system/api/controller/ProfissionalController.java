@@ -25,7 +25,7 @@ public class ProfissionalController {
     @Operation(summary = "Criar profissional", description = "Cria um novo profissional no sistema")
     public ResponseEntity<ProfissionalResponse> criar(@Valid @RequestBody ProfissionalRequest req) {
         Usuario profissional = profissionalService.criar(
-                req.nome(), req.email(), req.login(), req.senha(),
+                req.nome(), req.login(), req.email(), req.senha(),
                 req.papel()
         );
         return ResponseEntity.status(201).body(ProfissionalResponse.fromEntity(profissional));
