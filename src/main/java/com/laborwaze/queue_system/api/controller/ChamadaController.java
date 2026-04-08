@@ -31,6 +31,7 @@ public class ChamadaController {
     }
 
     @GetMapping
+    @PreAuthorize("hasAnyRole('ATENDENTE', 'MEDICO', 'ADMIN', 'SUPERVISOR')")
     @Operation(summary = "Buscar chamadas ativas", description = "Lista todas as chamadas ativas na fila")
     public ResponseEntity<List<ChamadaResponse>> buscarAtivas() {
         List<ChamadaResponse> responses = chamadaService.buscarAtivas().stream()
@@ -40,6 +41,7 @@ public class ChamadaController {
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ATENDENTE', 'MEDICO', 'ADMIN', 'SUPERVISOR')")
     @Operation(summary = "Buscar chamada por ID", description = "Retorna os detalhes de uma chamada específica")
     public ResponseEntity<ChamadaResponse> buscarPorId(@PathVariable String id) {
         return chamadaService.buscarPorId(id)
@@ -78,6 +80,7 @@ public class ChamadaController {
     }
 
     @GetMapping("/atendente/{atendenteId}")
+    @PreAuthorize("hasAnyRole('ATENDENTE', 'MEDICO', 'ADMIN', 'SUPERVISOR')")
     @Operation(summary = "Buscar por atendente", description = "Lista chamadas atribuídas a um atendente")
     public ResponseEntity<List<ChamadaResponse>> buscarPorAtendente(@PathVariable String atendenteId) {
         List<ChamadaResponse> responses = chamadaService.buscarPorAtendente(atendenteId).stream()
