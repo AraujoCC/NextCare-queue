@@ -1,13 +1,16 @@
 package com.laborwaze.queue_system.api.controller;
 
 import com.laborwaze.queue_system.application.dto.LoginRequest;
+import com.laborwaze.queue_system.api.request.UsuarioRequest;
 import com.laborwaze.queue_system.api.response.LoginResponse;
+import com.laborwaze.queue_system.api.response.UsuarioResponse;
 import com.laborwaze.queue_system.application.service.AuthService;
 import com.laborwaze.queue_system.domain.model.Usuario;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -32,5 +35,25 @@ public class AuthController {
             usuario.getPapel()
         );
         return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/register")
+    @Operation(summary = "Registrar novo usuário", description = "Cria um novo usuário no sistema")
+    public ResponseEntity<UsuarioResponse> registrar(@Valid @RequestBody UsuarioRequest request) {
+        Usuario usuario = authService.register(
+            request.nome(),
+            request.login(),
+            request.email(),
+            request.senha(),
+            request.papel()
+        );
+        UsuarioResponse response = new UsuarioResponse(
+            usuario.getId(),
+            usuario.getNome(),
+            usuario.getLogin(),
+            usuario.getEmail(),
+            usuario.getPapel()
+        );
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 }

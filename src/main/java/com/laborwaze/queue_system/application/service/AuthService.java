@@ -10,6 +10,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.UUID;
+
 @Service
 @RequiredArgsConstructor
 public class AuthService {
@@ -38,5 +40,31 @@ public class AuthService {
     public Usuario loadUserByLogin(String login) {
         return usuarioRepository.findByLogin(login)
                 .orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado"));
+    }
+
+    @Transactional
+    public Usuario register(String nome, String login, String email, String senha, com.laborwaze.queue_system.domain.enums.PapelUsuario papel) {
+        if (usuarioRepository.existsByLogin(login)) {
+            throw new BusinessRuleException("Login já está em uso");
+        }
+        if (usuarioRepository.existsByEmail(email)) {
+            throw new BusinessRuleException("Email já está em uso");
+        }
+
+        String senhaCriptografada = passwordEncoder.encode(senha);
+        Usuario usuario = new Usuario(
+            UUID.randomUUID().toString(),
+            java.time.LocalDateTime.now(),
+            java.time.LocalDateTime.now(),
+            nome,
+            login,
+            senhaCriptografada,
+            email,
+            papel,
+            null,
+            true
+        );
+
+        return usuarioRepository.save(usuario);
     }
 }
