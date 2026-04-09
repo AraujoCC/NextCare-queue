@@ -12,6 +12,8 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 @RequiredArgsConstructor
 public class StompWebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
+    private final AuthChannelInterceptor authChannelInterceptor;
+
     @Override
     public void configureMessageBroker(MessageBrokerRegistry config) {
         config.enableSimpleBroker("/topic");
@@ -21,7 +23,12 @@ public class StompWebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry.addEndpoint("/ws")
-                .setAllowedOriginPatterns("*")
+                .setAllowedOriginPatterns("*") // TODO: Em produção, restringir ao domínio do front-end
                 .withSockJS();
+    }
+
+    @Override
+    public void configureClientInboundChannel(org.springframework.messaging.simp.config.ChannelRegistration registration) {
+        registration.interceptors(authChannelInterceptor);
     }
 }
